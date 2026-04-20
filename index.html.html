@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LeadWin — 15 à 20 RDV qualifiés par mois</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=Space+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --noir: #0A0A0A;
+      --rouge: #FF1A1A;
+      --blanc: #F5F5F5;
+      --gris: #1A1A1A;
+      --gris-mid: #2A2A2A;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--noir);
+      color: var(--blanc);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      width: 10px; height: 10px;
+      background: var(--rouge);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1px solid rgba(255,26,26,0.5);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transition: all 0.25s ease;
+    }
+
+    /* Bebas Neue for headers */
+    .font-display { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.03em; }
+    .font-mono { font-family: 'Space Mono', monospace; }
+
+    /* Noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.6;
+    }
+
+    section { position: relative; z-index: 2; }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes lineGrow {
+      from { width: 0; }
+      to   { width: 100%; }
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(1.5); }
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    @keyframes counterUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes glitch {
+      0%   { clip-path: inset(0 0 95% 0); transform: translateX(-4px); }
+      20%  { clip-path: inset(50% 0 30% 0); transform: translateX(4px); }
+      40%  { clip-path: inset(20% 0 60% 0); transform: translateX(-2px); }
+      60%  { clip-path: inset(70% 0 5% 0); transform: translateX(2px); }
+      80%  { clip-path: inset(10% 0 80% 0); transform: translateX(-3px); }
+      100% { clip-path: inset(0 0 0 0); transform: translateX(0); }
+    }
+
+    .fade-up { animation: fadeUp 0.8s cubic-bezier(.22,1,.36,1) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.25s; }
+    .delay-3 { animation-delay: 0.4s; }
+    .delay-4 { animation-delay: 0.6s; }
+    .delay-5 { animation-delay: 0.8s; }
+
+    /* Hero diagonal line */
+    .diagonal-line {
+      position: absolute;
+      top: 0; right: 0;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(135deg, transparent 45%, rgba(255,26,26,0.04) 45%);
+      pointer-events: none;
+    }
+
+    /* Red accent line */
+    .red-line {
+      display: inline-block;
+      position: relative;
+    }
+    .red-line::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      height: 3px;
+      background: var(--rouge);
+      animation: lineGrow 1.2s cubic-bezier(.22,1,.36,1) 0.8s both;
+      width: 100%;
+    }
+
+    /* CTA Button */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--rouge);
+      color: var(--blanc);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      padding: 18px 36px;
+      border: none;
+      cursor: none;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.15);
+      transform: skewX(-20deg);
+      transition: left 0.4s ease;
+    }
+    .btn-primary:hover::before { left: 100%; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(255,26,26,0.35); }
+    .btn-primary .arrow {
+      transition: transform 0.3s ease;
+    }
+    .btn-primary:hover .arrow { transform: translateX(5px); }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: transparent;
+      color: var(--blanc);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      padding: 17px 35px;
+      border: 1px solid rgba(245,245,245,0.2);
+      cursor: none;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+    .btn-outline:hover {
+      border-color: var(--rouge);
+      color: var(--rouge);
+      transform: translateY(-2px);
+    }
+
+    /* Marquee strip */
+    .marquee-track {
+      animation: marquee 20s linear infinite;
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    /* Problem card */
+    .problem-card {
+      border: 1px solid rgba(245,245,245,0.07);
+      background: var(--gris);
+      padding: 36px;
+      position: relative;
+      transition: all 0.4s ease;
+      overflow: hidden;
+    }
+    .problem-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 0;
+      background: var(--rouge);
+      transition: height 0.4s ease;
+    }
+    .problem-card:hover { border-color: rgba(255,26,26,0.2); transform: translateY(-4px); }
+    .problem-card:hover::before { height: 100%; }
+
+    /* Metric block */
+    .metric-block {
+      border-top: 1px solid rgba(245,245,245,0.08);
+      padding-top: 32px;
+    }
+
+    /* Offer card */
+    .offer-card {
+      background: var(--gris);
+      border: 1px solid rgba(245,245,245,0.07);
+      padding: 44px 36px;
+      position: relative;
+      transition: all 0.4s ease;
+      overflow: hidden;
+    }
+    .offer-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255,26,26,0.3);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+    .offer-card.featured {
+      background: var(--rouge);
+      border-color: var(--rouge);
+    }
+    .offer-card.featured:hover { box-shadow: 0 24px 60px rgba(255,26,26,0.3); }
+
+    /* Horizontal rule custom */
+    .hr-custom {
+      border: none;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(245,245,245,0.12), transparent);
+    }
+
+    /* Dot indicator */
+    .live-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+
+    /* Scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Nav */
+    nav {
+      backdrop-filter: blur(20px);
+      background: rgba(10,10,10,0.8);
+      border-bottom: 1px solid rgba(245,245,245,0.06);
+    }
+
+    /* Glitch on hover */
+    .glitch-hover:hover {
+      animation: glitch 0.4s steps(1) forwards;
+    }
+
+    /* Step number */
+    .step-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem;
+      color: rgba(255,26,26,0.08);
+      line-height: 1;
+      position: absolute;
+      top: -10px;
+      right: 0;
+      user-select: none;
+    }
+
+    /* Section label */
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--rouge);
+      text-transform: uppercase;
+    }
+
+    /* Checkmark */
+    .check {
+      color: var(--rouge);
+      font-size: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      body { cursor: auto; }
+      .cursor, .cursor-ring { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ─── NAV ─── -->
+<nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+  <div class="max-w-6xl mx-auto flex justify-between items-center">
+    <div class="font-display text-2xl tracking-widest">
+      LEAD<span style="color:var(--rouge)">WIN</span>
+    </div>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="#probleme" class="text-xs tracking-widest uppercase font-mono opacity-50 hover:opacity-100 transition-opacity" style="color:var(--blanc)">Problème</a>
+      <a href="#solution" class="text-xs tracking-widest uppercase font-mono opacity-50 hover:opacity-100 transition-opacity" style="color:var(--blanc)">Solution</a>
+      <a href="#offres" class="text-xs tracking-widest uppercase font-mono opacity-50 hover:opacity-100 transition-opacity" style="color:var(--blanc)">Offres</a>
+    </div>
+    <a href="https://calendly.com/gebril/rendez-vous-leadwin" target="_blank" class="btn-primary text-xs py-3 px-6" style="font-size:0.75rem;padding:12px 24px;">
+      Prendre RDV <span class="arrow">→</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section style="min-height:100vh;background:var(--noir);display:flex;align-items:center;padding-top:80px;overflow:hidden;position:relative;">
+  <div class="diagonal-line"></div>
+  <!-- Grid background -->
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(245,245,245,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(245,245,245,0.025) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;"></div>
+
+  <div class="max-w-6xl mx-auto px-6 py-24 w-full">
+    <div class="max-w-4xl">
+
+      <div class="fade-up delay-1 flex items-center gap-3 mb-10">
+        <span class="live-dot"></span>
+        <span class="font-mono text-xs tracking-widest opacity-60">ACQUISITION B2B MULTICANAL</span>
+      </div>
+
+      <h1 class="font-display fade-up delay-2" style="font-size:clamp(3.5rem,9vw,8rem);line-height:0.95;color:var(--blanc);margin-bottom:0.3em;">
+        15 À 20<br>
+        <span style="color:var(--rouge);">RDV</span> QUALIFIÉS<br>
+        <span class="red-line">PAR MOIS.</span>
+      </h1>
+
+      <p class="fade-up delay-3 mt-8" style="font-size:clamp(1.1rem,2.5vw,1.4rem);color:rgba(245,245,245,0.55);font-weight:300;max-width:520px;line-height:1.6;">
+        Sens prospecter. <strong style="color:var(--blanc);font-weight:500;">On remplit votre agenda.</strong> Pendant que vous closez, on génère.
+      </p>
+
+      <div class="fade-up delay-4 flex flex-wrap gap-4 mt-12">
+        <a href="https://calendly.com/gebril/rendez-vous-leadwin" target="_blank" class="btn-primary">
+          Obtenir mes rendez-vous <span class="arrow">→</span>
+        </a>
+        <a href="#preuve" class="btn-outline">
+          Voir les résultats
+        </a>
+      </div>
+
+      <!-- Hero stats bar -->
+      <div class="fade-up delay-5 mt-20 flex flex-wrap gap-x-12 gap-y-6">
+        <div>
+          <div class="font-display" style="font-size:2.2rem;color:var(--rouge);">40–60</div>
+          <div class="font-mono text-xs opacity-40 tracking-wider mt-1">APPELS / JOUR</div>
+        </div>
+        <div style="width:1px;background:rgba(245,245,245,0.08);"></div>
+        <div>
+          <div class="font-display" style="font-size:2.2rem;color:var(--rouge);">1–3</div>
+          <div class="font-mono text-xs opacity-40 tracking-wider mt-1">RDV / JOUR</div>
+        </div>
+        <div style="width:1px;background:rgba(245,245,245,0.08);"></div>
+        <div>
+          <div class="font-display" style="font-size:2.2rem;color:var(--rouge);">2–4</div>
+          <div class="font-mono text-xs opacity-40 tracking-wider mt-1">CLIENTS / MOIS</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div style="position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0.3;">
+    <span class="font-mono" style="font-size:0.65rem;letter-spacing:0.15em;">SCROLL</span>
+    <div style="width:1px;height:48px;background:linear-gradient(var(--blanc),transparent);"></div>
+  </div>
+</section>
+
+<!-- ─── MARQUEE ─── -->
+<div style="background:var(--rouge);padding:14px 0;overflow:hidden;position:relative;z-index:2;">
+  <div class="marquee-track font-mono text-xs tracking-widest" style="color:rgba(255,255,255,0.85);">
+    &nbsp;&nbsp;&nbsp;COLD CALLING&nbsp;&nbsp;·&nbsp;&nbsp;LINKEDIN OUTREACH&nbsp;&nbsp;·&nbsp;&nbsp;COLD EMAIL&nbsp;&nbsp;·&nbsp;&nbsp;PIPELINE B2B&nbsp;&nbsp;·&nbsp;&nbsp;RDV QUALIFIÉS&nbsp;&nbsp;·&nbsp;&nbsp;ACQUISITION MULTICANAL&nbsp;&nbsp;·&nbsp;&nbsp;COLD CALLING&nbsp;&nbsp;·&nbsp;&nbsp;LINKEDIN OUTREACH&nbsp;&nbsp;·&nbsp;&nbsp;COLD EMAIL&nbsp;&nbsp;·&nbsp;&nbsp;PIPELINE B2B&nbsp;&nbsp;·&nbsp;&nbsp;RDV QUALIFIÉS&nbsp;&nbsp;·&nbsp;&nbsp;ACQUISITION MULTICANAL&nbsp;&nbsp;·&nbsp;&nbsp;COLD CALLING&nbsp;&nbsp;·&nbsp;&nbsp;LINKEDIN OUTREACH&nbsp;&nbsp;·&nbsp;&nbsp;COLD EMAIL&nbsp;&nbsp;·&nbsp;&nbsp;PIPELINE B2B&nbsp;&nbsp;·&nbsp;&nbsp;RDV QUALIFIÉS&nbsp;&nbsp;·&nbsp;&nbsp;ACQUISITION MULTICANAL&nbsp;&nbsp;·&nbsp;&nbsp;
+  </div>
+</div>
+
+<!-- ─── PROBLÈME ─── -->
+<section id="probleme" style="padding:120px 0;background:var(--noir);">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="reveal mb-16">
+      <span class="section-label">01 — Problème</span>
+      <h2 class="font-display mt-4" style="font-size:clamp(2.5rem,6vw,5rem);line-height:1;color:var(--blanc);">
+        VOTRE PIPELINE<br>MÉRITE MIEUX.
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-px" style="background:rgba(245,245,245,0.05);">
+
+      <div class="problem-card reveal">
+        <div class="step-num">01</div>
+        <div class="font-mono text-xs mb-6" style="color:var(--rouge);letter-spacing:0.15em;">INSTABILITÉ</div>
+        <h3 class="font-display text-3xl mb-4" style="color:var(--blanc);">Pipeline instable</h3>
+        <p style="color:rgba(245,245,245,0.45);line-height:1.7;font-size:0.95rem;">
+          Un mois plein, deux mois à vide. Vous ne savez jamais combien de nouveaux clients arrivent le mois prochain. Cette imprévisibilité vous empêche de scaler sereinement.
+        </p>
+      </div>
+
+      <div class="problem-card reveal" style="transition-delay:0.1s;">
+        <div class="step-num">02</div>
+        <div class="font-mono text-xs mb-6" style="color:var(--rouge);letter-spacing:0.15em;">TEMPS</div>
+        <h3 class="font-display text-3xl mb-4" style="color:var(--blanc);">Pas le temps de prospecter</h3>
+        <p style="color:rgba(245,245,245,0.45);line-height:1.7;font-size:0.95rem;">
+          Entre les missions, le delivery et le management, la prospection passe toujours après. Résultat : vous courez après les leads quand le carnet de commandes se vide.
+        </p>
+      </div>
+
+      <div class="problem-card reveal" style="transition-delay:0.2s;">
+        <div class="step-num">03</div>
+        <div class="font-mono text-xs mb-6" style="color:var(--rouge);letter-spacing:0.15em;">CROISSANCE</div>
+        <h3 class="font-display text-3xl mb-4" style="color:var(--blanc);">Croissance imprévisible</h3>
+        <p style="color:rgba(245,245,245,0.45);line-height:1.7;font-size:0.95rem;">
+          Sans flux constant d'opportunités, impossible de planifier recrutements, investissements ou développement. Votre croissance dépend du hasard, pas d'un système.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<hr class="hr-custom" />
+
+<!-- ─── SOLUTION ─── -->
+<section id="solution" style="padding:120px 0;background:var(--noir);">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="grid md:grid-cols-2 gap-20 items-center">
+
+      <div class="reveal">
+        <span class="section-label">02 — Solution</span>
+        <h2 class="font-display mt-4 mb-8" style="font-size:clamp(2.5rem,5vw,4.5rem);line-height:1;color:var(--blanc);">
+          UN SYSTÈME.<br>PAS UNE<br>
+          <span style="color:var(--rouge);">CHANCE.</span>
+        </h2>
+        <p style="color:rgba(245,245,245,0.5);line-height:1.8;font-size:1rem;margin-bottom:32px;">
+          LeadWin déploie une machine de prospection multicanal pour vous — cold calling, LinkedIn, cold email — ciblée et calibrée sur votre marché idéal.
+        </p>
+        <p style="color:rgba(245,245,245,0.5);line-height:1.8;font-size:1rem;">
+          Pendant que votre équipe exécute, nous alimentons votre agenda de rendez-vous qualifiés, chaque semaine, sans interruption.
+        </p>
+      </div>
+
+      <div class="reveal" style="transition-delay:0.15s;">
+        <div style="display:flex;flex-direction:column;gap:1px;background:rgba(245,245,245,0.05);">
+
+          <div style="background:var(--gris);padding:28px 32px;display:flex;align-items:center;gap:20px;transition:background 0.3s;" class="solution-step">
+            <div style="width:44px;height:44px;background:rgba(255,26,26,0.1);border:1px solid rgba(255,26,26,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="color:var(--rouge);font-family:'Space Mono';font-size:0.75rem;">01</span>
+            </div>
+            <div>
+              <div style="font-weight:500;margin-bottom:4px;">Ciblage précis</div>
+              <div style="font-size:0.85rem;color:rgba(245,245,245,0.4);">Identification des prospects à fort potentiel dans votre ICP.</div>
+            </div>
+          </div>
+
+          <div style="background:var(--gris);padding:28px 32px;display:flex;align-items:center;gap:20px;transition:background 0.3s;" class="solution-step">
+            <div style="width:44px;height:44px;background:rgba(255,26,26,0.1);border:1px solid rgba(255,26,26,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="color:var(--rouge);font-family:'Space Mono';font-size:0.75rem;">02</span>
+            </div>
+            <div>
+              <div style="font-weight:500;margin-bottom:4px;">Activation multicanal</div>
+              <div style="font-size:0.85rem;color:rgba(245,245,245,0.4);">Cold call, LinkedIn outreach et email en simultané — même lead, plusieurs points de contact.</div>
+            </div>
+          </div>
+
+          <div style="background:var(--gris);padding:28px 32px;display:flex;align-items:center;gap:20px;transition:background 0.3s;" class="solution-step">
+            <div style="width:44px;height:44px;background:rgba(255,26,26,0.1);border:1px solid rgba(255,26,26,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="color:var(--rouge);font-family:'Space Mono';font-size:0.75rem;">03</span>
+            </div>
+            <div>
+              <div style="font-weight:500;margin-bottom:4px;">RDV posé dans votre agenda</div>
+              <div style="font-size:0.85rem;color:rgba(245,245,245,0.4);">On qualifie, on cale, vous n'avez qu'à parler.</div>
+            </div>
+          </div>
+
+          <div style="background:var(--gris);padding:28px 32px;display:flex;align-items:center;gap:20px;" >
+            <div style="width:44px;height:44px;background:rgba(255,26,26,0.1);border:1px solid rgba(255,26,26,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="color:var(--rouge);font-family:'Space Mono';font-size:0.75rem;">04</span>
+            </div>
+            <div>
+              <div style="font-weight:500;margin-bottom:4px;">Reporting hebdomadaire</div>
+              <div style="font-size:0.85rem;color:rgba(245,245,245,0.4);">Appels, ouvertures, réponses, RDV — vous voyez tout en temps réel.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<hr class="hr-custom" />
+
+<!-- ─── PREUVE ─── -->
+<section id="preuve" style="padding:120px 0;background:var(--noir);">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="reveal text-center mb-20">
+      <span class="section-label">03 — Résultats</span>
+      <h2 class="font-display mt-4" style="font-size:clamp(2.5rem,6vw,5rem);line-height:1;color:var(--blanc);">
+        DES CHIFFRES,<br>PAS DES PROMESSES.
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-12">
+
+      <div class="reveal metric-block" style="transition-delay:0s;">
+        <div class="font-display" style="font-size:clamp(3.5rem,7vw,6rem);color:var(--rouge);line-height:1;">40–60</div>
+        <div class="font-mono text-xs tracking-widest mt-3 mb-4" style="color:rgba(245,245,245,0.35);">APPELS RÉELS / JOUR</div>
+        <p style="color:rgba(245,245,245,0.45);font-size:0.9rem;line-height:1.7;">
+          Pas de dialer automatique, pas de spam. Des appels humains, contextualisés, vers des décideurs que nous avons identifiés pour vous.
+        </p>
+      </div>
+
+      <div class="reveal metric-block" style="transition-delay:0.12s;">
+        <div class="font-display" style="font-size:clamp(3.5rem,7vw,6rem);color:var(--rouge);line-height:1;">1–3</div>
+        <div class="font-mono text-xs tracking-widest mt-3 mb-4" style="color:rgba(245,245,245,0.35);">RDV QUALIFIÉS / JOUR</div>
+        <p style="color:rgba(245,245,245,0.45);font-size:0.9rem;line-height:1.7;">
+          Chaque rendez-vous posé correspond à un prospect qui a confirmé son intérêt, son budget et sa capacité à décider.
+        </p>
+      </div>
+
+      <div class="reveal metric-block" style="transition-delay:0.24s;">
+        <div class="font-display" style="font-size:clamp(3.5rem,7vw,6rem);color:var(--rouge);line-height:1;">2–4</div>
+        <div class="font-mono text-xs tracking-widest mt-3 mb-4" style="color:rgba(245,245,245,0.35);">NOUVEAUX CLIENTS / MOIS</div>
+        <p style="color:rgba(245,245,245,0.45);font-size:0.9rem;line-height:1.7;">
+          Le flux constant de rendez-vous se convertit en clients récurrents. Votre croissance devient prévisible et planifiable.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── OFFRES ─── -->
+<section id="offres" style="padding:120px 0;background:#080808;">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="reveal text-center mb-20">
+      <span class="section-label">04 — Offres</span>
+      <h2 class="font-display mt-4" style="font-size:clamp(2.5rem,6vw,5rem);line-height:1;color:var(--blanc);">
+        CHOISISSEZ<br>VOTRE VITESSE.
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-px" style="background:rgba(245,245,245,0.05);">
+
+      <!-- Acquisition -->
+      <div class="offer-card reveal">
+        <div class="font-mono text-xs tracking-widest mb-2" style="color:var(--rouge);">ACQUISITION</div>
+        <h3 class="font-display text-4xl mb-2" style="color:var(--blanc);">STARTER</h3>
+        <p style="color:rgba(245,245,245,0.35);font-size:0.85rem;margin-bottom:32px;">Pour tester et lancer la machine.</p>
+
+        <div style="border-top:1px solid rgba(245,245,245,0.07);padding-top:28px;margin-bottom:28px;">
+          <ul style="display:flex;flex-direction:column;gap:14px;">
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(245,245,245,0.7);">
+              <span class="check">✕</span> Cold calling 20–30 appels/j
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(245,245,245,0.7);">
+              <span class="check">✕</span> LinkedIn outreach
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(245,245,245,0.7);">
+              <span class="check">✕</span> 5–10 RDV / mois
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(245,245,245,0.35);">
+              <span style="opacity:0.3;">—</span> Cold email séquences
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(245,245,245,0.35);">
+              <span style="opacity:0.3;">—</span> Reporting avancé
+            </li>
+          </ul>
+        </div>
+
+        <a href="https://calendly.com/gebril/rendez-vous-leadwin" target="_blank" class="btn-outline" style="width:100%;justify-content:center;">
+          Démarrer <span class="arrow">→</span>
+        </a>
+      </div>
+
+      <!-- Performance (featured) -->
+      <div class="offer-card featured reveal" style="transition-delay:0.12s;">
+        <div style="position:absolute;top:0;right:0;background:rgba(0,0,0,0.25);padding:6px 14px;">
+          <span style="font-family:'Space Mono';font-size:0.65rem;letter-spacing:0.1em;color:rgba(255,255,255,0.8);">LE + POPULAIRE</span>
+        </div>
+        <div class="font-mono text-xs tracking-widest mb-2" style="color:rgba(255,255,255,0.6);">PERFORMANCE</div>
+        <h3 class="font-display text-4xl mb-2" style="color:#fff;">SCALE</h3>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:32px;">Pour une acquisition constante et prédictible.</p>
+
+        <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:28px;margin-bottom:28px;">
+          <ul style="display:flex;flex-direction:column;gap:14px;">
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(255,255,255,0.9);">
+              <span>✓</span> Cold calling 40–60 appels/j
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(255,255,255,0.9);">
+              <span>✓</span> LinkedIn outreach
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(255,255,255,0.9);">
+              <span>✓</span> Cold email séquences
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(255,255,255,0.9);">
+              <span>✓</span> 15–20 RDV / mois
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(255,255,255,0.6);">
+              <span style="opacity:0.6;">—</span> Stratégie commerciale dédiée
+            </li>
+          </ul>
+        </div>
+
+        <a href="https://calendly.com/gebril/rendez-vous-leadwin" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:12px;background:#fff;color:var(--rouge);font-family:'DM Sans';font-weight:600;font-size:0.85rem;letter-spacing:0.05em;text-transform:uppercase;padding:18px 36px;text-decoration:none;transition:all 0.3s;width:100%;" onmouseover="this.style.background='rgba(255,255,255,0.9)'" onmouseout="this.style.background='#fff'">
+          Choisir Scale →
+        </a>
+      </div>
+
+      <!-- Complet -->
+      <div class="offer-card reveal" style="transition-delay:0.24s;">
+        <div class="font-mono text-xs tracking-widest mb-2" style="color:var(--rouge);">COMPLET</div>
+        <h3 class="font-display text-4xl mb-2" style="color:var(--blanc);">FULL</h3>
+        <p style="color:rgba(245,245,245,0.35);font-size:0.85rem;margin-bottom:32px;">Pour une croissance agressive et sans plafond.</p>
+
+        <div style="border-top:1px solid rgba(245,245,245,0.07);padding-top:28px;margin-bottom:28px;">
+          <ul style="display:flex;flex-direction:column;gap:14px;">
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(245,245,245,0.7);">
+              <span class="check">✕</span> Tout de Scale inclus
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(245,245,245,0.7);">
+              <span class="check">✕</span> Stratégie commerciale dédiée
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(245,245,245,0.7);">
+              <span class="check">✕</span> Script & copywriting offert
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(245,245,245,0.7);">
+              <span class="check">✕</span> Accompagnement closing
+            </li>
+            <li style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:rgba(245,245,245,0.7);">
+              <span class="check">✕</span> Reporting + call mensuel dédié
+            </li>
+          </ul>
+        </div>
+
+        <a href="https://calendly.com/gebril/rendez-vous-leadwin" target="_blank" class="btn-outline" style="width:100%;justify-content:center;">
+          Demander Full <span class="arrow">→</span>
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── CTA FINAL ─── -->
+<section id="cta" style="padding:140px 0;background:var(--noir);position:relative;overflow:hidden;">
+  <!-- BG accent -->
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(255,26,26,0.07) 0%,transparent 70%);pointer-events:none;"></div>
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(245,245,245,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(245,245,245,0.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;"></div>
+
+  <div class="max-w-4xl mx-auto px-6 text-center reveal" style="position:relative;z-index:2;">
+    <span class="section-label">05 — Action</span>
+    <h2 class="font-display mt-4 mb-6" style="font-size:clamp(3rem,7vw,6.5rem);line-height:0.95;color:var(--blanc);">
+      VOTRE PROCHAIN<br>
+      <span style="color:var(--rouge);">CLIENT</span><br>VOUS ATTEND.
+    </h2>
+
+    <p style="color:rgba(245,245,245,0.45);max-width:480px;margin:0 auto 48px;line-height:1.7;font-size:1rem;">
+      Prenez 30 minutes. On analyse votre marché, on calibre le système, et on vous montre exactement ce qu'on peut générer pour vous.
+    </p>
+
+    <a href="https://calendly.com/gebril/rendez-vous-leadwin" target="_blank" class="btn-primary" style="font-size:1rem;padding:22px 48px;display:inline-flex;">
+      Booker un échange de 30 minutes <span class="arrow">→</span>
+    </a>
+
+    <div class="flex justify-center gap-12 mt-16 flex-wrap">
+      <div style="text-align:center;">
+        <div class="font-mono text-xs mb-1" style="color:rgba(245,245,245,0.25);letter-spacing:0.15em;">SANS ENGAGEMENT</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="font-mono text-xs mb-1" style="color:rgba(245,245,245,0.25);letter-spacing:0.15em;">RÉPONSE EN 24H</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="font-mono text-xs mb-1" style="color:rgba(245,245,245,0.25);letter-spacing:0.15em;">100% B2B</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer style="border-top:1px solid rgba(245,245,245,0.06);padding:40px 0;background:#080808;">
+  <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+    <div class="font-display text-xl tracking-widest">
+      LEAD<span style="color:var(--rouge);">WIN</span>
+    </div>
+    <div class="font-mono text-xs" style="color:rgba(245,245,245,0.2);letter-spacing:0.1em;">
+      © 2024 LEADWIN — ACQUISITION B2B MULTICANAL
+    </div>
+    <div class="flex gap-6">
+      <a href="#" class="font-mono text-xs hover:opacity-100 transition-opacity" style="color:rgba(245,245,245,0.25);letter-spacing:0.1em;text-decoration:none;">LinkedIn</a>
+      <a href="#" class="font-mono text-xs hover:opacity-100 transition-opacity" style="color:rgba(245,245,245,0.25);letter-spacing:0.1em;text-decoration:none;">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.transform = `translate(${mx - 5}px, ${my - 5}px)`;
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.transform = `translate(${rx - 18}px, ${ry - 18}px)`;
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform += ' scale(2)';
+      ring.style.width = '54px';
+      ring.style.height = '54px';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width = '36px';
+      ring.style.height = '36px';
+    });
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // Solution step hover
+  document.querySelectorAll('.solution-step').forEach(el => {
+    el.addEventListener('mouseenter', () => el.style.background = '#1f1f1f');
+    el.addEventListener('mouseleave', () => el.style.background = 'var(--gris)');
+  });
+</script>
+
+</body>
+</html>
